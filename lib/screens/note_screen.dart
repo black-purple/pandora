@@ -57,7 +57,8 @@ class _NoteScreenState extends State<NoteScreen> {
                   padding: EdgeInsets.zero,
                   onPressed: () async {
                     if (await BiometricController.hasBiometrics()) {
-                      if (await BiometricController.authenticate()) {
+                      if (await BiometricController.authenticate(
+                          "Authenticate to ${notesCtl.notes[widget.index]['locked'].toInt() == 0 ? "lock" : "unlock"} your data")) {
                         notesCtl.lockNote(widget.index);
                       }
                     }

@@ -12,13 +12,13 @@ class BiometricController {
     }
   }
 
-  static Future<bool> authenticate() async {
+  static Future<bool> authenticate(String message) async {
     final isAvailable = await hasBiometrics();
     if (!isAvailable) return false;
 
     try {
       return await _auth.authenticate(
-        localizedReason: "Authenticate to access your data",
+        localizedReason: message,
       );
     } on PlatformException catch (error) {
       return false;

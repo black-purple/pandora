@@ -220,7 +220,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () async {
                           if (notesCtl.notes[index]['locked'].toInt() == 1) {
                             if (await BiometricController.hasBiometrics()) {
-                              if (await BiometricController.authenticate()) {
+                              if (await BiometricController.authenticate(
+                                  "Authenticate to access your data")) {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (_) => NoteScreen(index: index),
@@ -258,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         alignment: Alignment.bottomRight,
                                         child: Icon(
                                           CupertinoIcons.lock_shield,
-                                          color: CupertinoColors.systemBlue,
+                                          color: CupertinoColors.systemGreen,
                                         ),
                                       )
                                     : const SizedBox.shrink(),

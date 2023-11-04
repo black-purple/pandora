@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 
@@ -8,6 +9,9 @@ class BiometricController {
     try {
       return await _auth.canCheckBiometrics && await _auth.isDeviceSupported();
     } on PlatformException catch (error) {
+      if (kDebugMode) {
+        print(error);
+      }
       return false;
     }
   }
@@ -21,6 +25,9 @@ class BiometricController {
         localizedReason: message,
       );
     } on PlatformException catch (error) {
+      if (kDebugMode) {
+        print(error);
+      }
       return false;
     }
   }

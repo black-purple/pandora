@@ -3,23 +3,31 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pandora/controllers/biometric_controller.dart';
 
 import '../controllers/note_controller.dart';
 import 'note_screen.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({
     super.key,
   });
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomePageState extends State<HomePage> {
-  final _noteTitleController = TextEditingController();
-  final _noteContentController = TextEditingController();
+class _HomeScreenState extends State<HomeScreen> {
+  final _noteTitleCtl = TextEditingController();
+  final _noteContentCtl = TextEditingController();
   final _key = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _noteContentCtl.dispose();
+    _noteTitleCtl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +95,7 @@ class _HomePageState extends State<HomePage> {
                                       return null;
                                     },
                                     placeholder: "Note name",
-                                    controller: _noteTitleController,
+                                    controller: _noteTitleCtl,
                                   ),
                                   CupertinoTextFormFieldRow(
                                     padding: const EdgeInsets.symmetric(
@@ -108,7 +116,7 @@ class _HomePageState extends State<HomePage> {
                                       return null;
                                     },
                                     placeholder: "Note",
-                                    controller: _noteContentController,
+                                    controller: _noteContentCtl,
                                   ),
                                 ],
                               ),
@@ -126,13 +134,11 @@ class _HomePageState extends State<HomePage> {
                               onPressed: () {
                                 if (_key.currentState!.validate()) {
                                   notesCtl.addNote(
-                                    _noteTitleController.text.trim().toString(),
-                                    _noteContentController.text
-                                        .trim()
-                                        .toString(),
+                                    _noteTitleCtl.text.trim().toString(),
+                                    _noteContentCtl.text.trim().toString(),
                                   );
-                                  _noteTitleController.clear();
-                                  _noteContentController.clear();
+                                  _noteTitleCtl.clear();
+                                  _noteContentCtl.clear();
                                   Navigator.of(context).pop();
                                 }
                               },
@@ -211,11 +217,26 @@ class _HomePageState extends State<HomePage> {
                             ),
                           );
                         },
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => NoteScreen(index: index),
-                          ),
-                        ),
+                        onTap: () async {
+                          if (notesCtl.notes[index]['locked'].toInt() == 1) {
+                            if (await BiometricController.hasBiometrics()) {
+                              if (await BiometricController.authenticate(
+                                  "Authenticate to access your data")) {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => NoteScreen(index: index),
+                                  ),
+                                );
+                              }
+                            }
+                          } else {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => NoteScreen(index: index),
+                              ),
+                            );
+                          }
+                        },
                         child: Container(
                           margin: const EdgeInsets.all(3),
                           padding: const EdgeInsets.all(10),
@@ -238,7 +259,7 @@ class _HomePageState extends State<HomePage> {
                                         alignment: Alignment.bottomRight,
                                         child: Icon(
                                           CupertinoIcons.lock_shield,
-                                          color: CupertinoColors.systemGrey,
+                                          color: CupertinoColors.systemGreen,
                                         ),
                                       )
                                     : const SizedBox.shrink(),

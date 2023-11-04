@@ -1,7 +1,7 @@
 name: pandora
 description: A notes app with IOS style
 
-version: 1.0.0+1
+version: 1.2.0
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -9,12 +9,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
   cupertino_icons: ^1.0.2
   sqflite: ^2.2.8+4
   path: ^1.8.3
   get: ^4.6.6
   local_auth: ^2.1.7
+  flutter_slidable: ^3.0.1
+  flutter_animate: ^4.2.0+1
 
 
 dev_dependencies:

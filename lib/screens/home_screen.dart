@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
 import 'package:pandora/controllers/biometric_controller.dart';
 
@@ -21,6 +23,34 @@ class _HomeScreenState extends State<HomeScreen> {
   final _noteTitleCtl = TextEditingController();
   final _noteContentCtl = TextEditingController();
   final _key = GlobalKey<FormState>();
+
+  deleteNoteSheet(BuildContext context, NoteController notesCtl, int index) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (_) => CupertinoActionSheet(
+        title: const Text(
+          "Are you sure you want to delete this note?",
+        ),
+        actions: [
+          CupertinoActionSheetAction(
+            isDestructiveAction: true,
+            isDefaultAction: true,
+            onPressed: () {
+              notesCtl.deleteNote(index);
+              Navigator.of(context).pop();
+            },
+            child: const Text("Confirm"),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text("Cancel"),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -73,13 +103,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           content: Form(
                             key: _key,
                             child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 15),
+                              margin: const EdgeInsets.symmetric(vertical: 10),
                               child: Column(
                                 children: [
                                   CupertinoTextFormFieldRow(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 15,
-                                    ),
                                     decoration: BoxDecoration(
                                       border: const Border.fromBorderSide(
                                         BorderSide(
@@ -98,9 +125,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                     controller: _noteTitleCtl,
                                   ),
                                   CupertinoTextFormFieldRow(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 15,
-                                    ),
                                     decoration: BoxDecoration(
                                       border: const Border.fromBorderSide(
                                         BorderSide(
@@ -179,139 +203,226 @@ class _HomeScreenState extends State<HomeScreen> {
                       childCount: 1,
                     ),
                   )
-                : SliverPadding(
-                    padding: const EdgeInsets.only(top: 10),
-                    sliver: SliverGrid.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 5,
-                        mainAxisSpacing: 5,
-                      ),
-                      itemCount: notesCtl.notes.length,
-                      itemBuilder: (_, index) => GestureDetector(
-                        onLongPress: () {
-                          showCupertinoModalPopup(
-                            context: context,
-                            builder: (_) => CupertinoActionSheet(
-                              title: const Text(
-                                "Are you sure you want to delete this note?",
-                              ),
-                              actions: [
-                                CupertinoActionSheetAction(
-                                  isDestructiveAction: true,
-                                  isDefaultAction: true,
-                                  onPressed: () {
-                                    notesCtl.deleteNote(index);
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text("Confirm"),
-                                ),
-                                CupertinoActionSheetAction(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text("Cancel"),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                        onTap: () async {
-                          if (notesCtl.notes[index]['locked'].toInt() == 1) {
-                            if (await BiometricController.hasBiometrics()) {
-                              if (await BiometricController.authenticate(
-                                  "Authenticate to access your data")) {
+                : notesCtl.isGrid
+                    ? SliverPadding(
+                        padding: const EdgeInsets.only(top: 10),
+                        sliver: SliverGrid.builder(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 5,
+                            mainAxisSpacing: 5,
+                          ),
+                          itemCount: notesCtl.notes.length,
+                          itemBuilder: (_, index) => GestureDetector(
+                            onLongPress: () async {
+                              if (notesCtl.notes[index]['locked'].toInt() ==
+                                  1) {
+                                if (await BiometricController.hasBiometrics()) {
+                                  if (await BiometricController.authenticate(
+                                      "Authenticate to perform this action")) {
+                                    deleteNoteSheet(context, notesCtl, index);
+                                  }
+                                }
+                              } else {
+                                deleteNoteSheet(context, notesCtl, index);
+                              }
+                            },
+                            onTap: () async {
+                              if (notesCtl.notes[index]['locked'].toInt() ==
+                                  1) {
+                                if (await BiometricController.hasBiometrics()) {
+                                  if (await BiometricController.authenticate(
+                                      "Authenticate to access your data")) {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            NoteScreen(index: index),
+                                      ),
+                                    );
+                                  }
+                                }
+                              } else {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (_) => NoteScreen(index: index),
                                   ),
                                 );
                               }
-                            }
-                          } else {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => NoteScreen(index: index),
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.all(3),
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                border: const Border.fromBorderSide(
+                                  BorderSide(
+                                    color: CupertinoColors.systemGrey,
+                                  ),
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                                color:
+                                    CupertinoColors.systemGrey.withOpacity(.3),
                               ),
-                            );
-                          }
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.all(3),
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            border: const Border.fromBorderSide(
-                              BorderSide(
-                                color: CupertinoColors.systemGrey,
-                              ),
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                            color: CupertinoColors.systemGrey.withOpacity(.3),
-                          ),
-                          child: SizedBox(
-                            height: double.maxFinite,
-                            width: double.maxFinite,
-                            child: Stack(
-                              children: [
-                                notesCtl.notes[index]['locked'] == 1
-                                    ? const Align(
-                                        alignment: Alignment.bottomRight,
-                                        child: Icon(
-                                          CupertinoIcons.lock_shield,
-                                          color: CupertinoColors.systemGreen,
-                                        ),
-                                      )
-                                    : const SizedBox.shrink(),
-                                Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                              child: SizedBox(
+                                height: double.maxFinite,
+                                width: double.maxFinite,
+                                child: Stack(
                                   children: [
-                                    Text(
-                                      notesCtl.notes[index]['title'],
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 20,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 5),
                                     notesCtl.notes[index]['locked'] == 1
-                                        ? ImageFiltered(
-                                            imageFilter: ImageFilter.blur(
-                                                sigmaX: 5, sigmaY: 5),
-                                            child: Text(
-                                              notesCtl.notes[index]['content'],
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                color: CupertinoColors
-                                                    .systemGrey
-                                                    .withOpacity(
-                                                  .7,
-                                                ),
-                                              ),
+                                        ? const Align(
+                                            alignment: Alignment.bottomRight,
+                                            child: Icon(
+                                              CupertinoIcons.lock_shield,
+                                              color:
+                                                  CupertinoColors.systemGreen,
                                             ),
                                           )
-                                        : Text(
-                                            notesCtl.notes[index]['content'],
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              color: CupertinoColors.systemGrey
-                                                  .withOpacity(
-                                                .7,
-                                              ),
-                                            ),
+                                        : const SizedBox.shrink(),
+                                    Column(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          notesCtl.notes[index]['title'],
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20,
                                           ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        notesCtl.notes[index]['locked'] == 1
+                                            ? ImageFiltered(
+                                                imageFilter: ImageFilter.blur(
+                                                    sigmaX: 5, sigmaY: 5),
+                                                child: Text(
+                                                  notesCtl.notes[index]
+                                                      ['content'],
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    color: CupertinoColors
+                                                        .systemGrey
+                                                        .withOpacity(
+                                                      .7,
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                            : Text(
+                                                notesCtl.notes[index]
+                                                    ['content'],
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  color: CupertinoColors
+                                                      .systemGrey
+                                                      .withOpacity(
+                                                    .7,
+                                                  ),
+                                                ),
+                                              ),
+                                      ],
+                                    ),
                                   ],
                                 ),
-                              ],
+                              ),
+                            ),
+                          ).animate().fadeIn(
+                                delay: Duration(milliseconds: 100 * index),
+                              ),
+                        ),
+                      )
+                    : SliverPadding(
+                        padding: const EdgeInsets.only(top: 10),
+                        sliver: SliverList.builder(
+                          itemCount: notesCtl.notes.length,
+                          itemBuilder: (_, index) => Padding(
+                            padding: const EdgeInsets.all(5.0),
+                            child: Slidable(
+                              endActionPane: ActionPane(
+                                  motion: const BehindMotion(),
+                                  children: [
+                                    SlidableAction(
+                                      onPressed: (_) async {
+                                        if (notesCtl.notes[index]['locked']
+                                                .toInt() ==
+                                            1) {
+                                          if (await BiometricController
+                                              .hasBiometrics()) {
+                                            if (await BiometricController
+                                                .authenticate(
+                                                    "Authenticate to perform this action")) {
+                                              deleteNoteSheet(
+                                                  context, notesCtl, index);
+                                            }
+                                          }
+                                        } else {
+                                          deleteNoteSheet(
+                                              context, notesCtl, index);
+                                        }
+                                      },
+                                      backgroundColor: Color(0xFFFE4A49),
+                                      foregroundColor: Colors.white,
+                                      icon: CupertinoIcons.delete,
+                                      label: 'Delete',
+                                    ),
+                                  ]),
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  color: CupertinoColors.systemGrey
+                                      .withOpacity(.3),
+                                  border: const Border.fromBorderSide(
+                                    BorderSide(
+                                      color: CupertinoColors.systemGrey,
+                                    ),
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: CupertinoListTile.notched(
+                                  trailing: notesCtl.notes[index]['locked'] == 1
+                                      ? const Icon(
+                                          CupertinoIcons.lock_shield,
+                                          color: CupertinoColors.systemGreen,
+                                        )
+                                      : null,
+                                  title: Text(notesCtl.notes[index]['title']),
+                                  onTap: () async {
+                                    if (notesCtl.notes[index]['locked']
+                                            .toInt() ==
+                                        1) {
+                                      if (await BiometricController
+                                          .hasBiometrics()) {
+                                        if (await BiometricController.authenticate(
+                                            "Authenticate to access your data")) {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  NoteScreen(index: index),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    } else {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              NoteScreen(index: index),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ).animate().fadeIn(
+                                    delay: Duration(milliseconds: 50 * index),
+                                  ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
           ],
         ),
       ),

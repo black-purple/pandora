@@ -24,7 +24,8 @@ class DatabaseHelper {
       CREATE TABLE "notes" (
         "id" INTEGER NOT NULL PRIMARY KEY,
         "title" TEXT NOT NULL,
-        "content" TEXT NOT NULL
+        "content" TEXT NOT NULL,
+        "locked" INTEGER DEFAULT 0
       )
       ''');
   }
@@ -65,6 +66,13 @@ class DatabaseHelper {
   deleteNote(int id) async {
     var notesDb = await db;
     var data = notesDb!.rawDelete("DELETE FROM 'notes' WHERE id=$id");
+    return data;
+  }
+
+  lockNote(int id, int locked) async{
+     var notesDb = await db;
+    var data = notesDb!
+        .rawUpdate("UPDATE 'notes' SET 'locked' = '$locked' WHERE id=$id");
     return data;
   }
 }

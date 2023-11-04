@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'pages/home_page.dart';
+import 'screens/home_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

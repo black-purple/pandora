@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:pandora/controllers/biometric_controller.dart';
 import 'package:pandora/controllers/note_controller.dart';
@@ -22,6 +25,7 @@ class NoteScreen extends StatefulWidget {
 class _NoteScreenState extends State<NoteScreen> {
   var _noteCtl = TextEditingController();
   var _titleCtl = TextEditingController();
+  final FocusNode _noteFocus = FocusNode();
 
   @override
   void initState() {
@@ -48,6 +52,7 @@ class _NoteScreenState extends State<NoteScreen> {
       child: GetBuilder<NoteController>(
         init: NoteController(),
         builder: (notesCtl) => CupertinoPageScaffold(
+          backgroundColor: CupertinoColors.darkBackgroundGray,
           navigationBar: CupertinoNavigationBar(
             trailing: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -55,14 +60,19 @@ class _NoteScreenState extends State<NoteScreen> {
               children: [
                 CupertinoButton(
                   padding: EdgeInsets.zero,
-                  onPressed: () async {
-                    if (await BiometricController.hasBiometrics()) {
-                      if (await BiometricController.authenticate(
-                          "Authenticate to ${notesCtl.notes[widget.index]['locked'].toInt() == 0 ? "lock" : "unlock"} your data")) {
-                        notesCtl.lockNote(widget.index);
-                      }
-                    }
-                  },
+                  onPressed: Platform.isMacOS ||
+                          Platform.isLinux ||
+                          Platform.isWindows ||
+                          kIsWeb
+                      ? null
+                      : () async {
+                          if (await BiometricController.hasBiometrics()) {
+                            if (await BiometricController.authenticate(
+                                "Authenticate to ${notesCtl.notes[widget.index]['locked'].toInt() == 0 ? "lock" : "unlock"} your data")) {
+                              notesCtl.lockNote(widget.index);
+                            }
+                          }
+                        },
                   child: Icon(
                     notesCtl.notes[widget.index]['locked'] == 0
                         ? CupertinoIcons.lock_open
@@ -121,16 +131,19 @@ class _NoteScreenState extends State<NoteScreen> {
                       }
                     },
                     child: CupertinoTextField(
+                      decoration: const BoxDecoration(
+                        color: CupertinoColors.darkBackgroundGray,
+                      ),
                       controller: _titleCtl,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 25,
                       ),
-                      onChanged: (value) {},
+                      textInputAction: TextInputAction.next,
                     ),
                   ),
-                  const SizedBox(height: 10),
                   Focus(
+                    focusNode: _noteFocus,
                     onFocusChange: (focus) {
                       if (!focus) {
                         notesCtl.updateNoteContent(
@@ -140,10 +153,12 @@ class _NoteScreenState extends State<NoteScreen> {
                       }
                     },
                     child: CupertinoTextField(
+                      decoration: const BoxDecoration(
+                        color: CupertinoColors.darkBackgroundGray,
+                      ),
                       controller: _noteCtl,
                       minLines: 10,
                       maxLines: 30,
-                      onChanged: (value) {},
                     ),
                   ),
                 ],

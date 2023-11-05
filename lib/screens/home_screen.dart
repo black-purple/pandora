@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -62,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.darkBackgroundGray,
       child: GetBuilder<NoteController>(
         init: NoteController(),
         builder: (notesCtl) => CustomScrollView(
@@ -96,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: EdgeInsets.zero,
                     child: const Icon(CupertinoIcons.add_circled),
                     onPressed: () {
-                      showCupertinoModalPopup(
+                      showCupertinoDialog(
                         context: context,
                         builder: (_) => CupertinoAlertDialog(
                           title: const Text("Add Note"),
@@ -113,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           color: CupertinoColors.systemGrey,
                                         ),
                                       ),
-                                      borderRadius: BorderRadius.circular(10),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
                                     validator: (value) {
                                       if (value != null && value.isEmpty) {
@@ -121,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       }
                                       return null;
                                     },
-                                    placeholder: "Note name",
+                                    placeholder: "Title",
                                     controller: _noteTitleCtl,
                                   ),
                                   CupertinoTextFormFieldRow(
@@ -131,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           color: CupertinoColors.systemGrey,
                                         ),
                                       ),
-                                      borderRadius: BorderRadius.circular(10),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
                                     validator: (value) {
                                       if (value != null && value.isEmpty) {
@@ -205,11 +208,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   )
                 : notesCtl.isGrid
                     ? SliverPadding(
-                        padding: const EdgeInsets.only(top: 10),
+                        padding: const EdgeInsets.only(
+                          top: 10,
+                          left: 10,
+                          right: 10,
+                        ),
                         sliver: SliverGrid.builder(
                           gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: Platform.isMacOS ||
+                                    Platform.isLinux ||
+                                    Platform.isWindows ||
+                                    kIsWeb
+                                ? 7
+                                : 3,
                             crossAxisSpacing: 5,
                             mainAxisSpacing: 5,
                           ),
@@ -331,12 +343,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                           ).animate().fadeIn(
-                                delay: Duration(milliseconds: 100 * index),
+                                delay: Duration(milliseconds: 50 * index),
                               ),
                         ),
                       )
                     : SliverPadding(
-                        padding: const EdgeInsets.only(top: 10),
+                        padding: const EdgeInsets.only(
+                          top: 10,
+                          left: 5,
+                          right: 5,
+                        ),
                         sliver: SliverList.builder(
                           itemCount: notesCtl.notes.length,
                           itemBuilder: (_, index) => Padding(
@@ -364,7 +380,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                               context, notesCtl, index);
                                         }
                                       },
-                                      backgroundColor: Color(0xFFFE4A49),
+                                      backgroundColor:
+                                          CupertinoColors.systemRed,
                                       foregroundColor: Colors.white,
                                       icon: CupertinoIcons.delete,
                                       label: 'Delete',

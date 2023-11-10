@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get_state_manager/get_state_manager.dart';
 import 'package:pandora/db/db.dart';
 
@@ -9,6 +10,7 @@ class NoteController extends GetxController {
 
   toggleBuilder() {
     isGrid = !isGrid;
+    HapticFeedback.mediumImpact();
     update();
   }
 

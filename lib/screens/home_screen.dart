@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 import 'dart:ui';
 
@@ -309,7 +311,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                         notesCtl.notes[index]['locked'] == 1
                                             ? ImageFiltered(
                                                 imageFilter: ImageFilter.blur(
-                                                    sigmaX: 5, sigmaY: 5),
+                                                  sigmaX: 4,
+                                                  sigmaY: 4,
+                                                  tileMode: TileMode.decal,
+                                                ),
                                                 child: Text(
                                                   notesCtl.notes[index]
                                                       ['content'],
